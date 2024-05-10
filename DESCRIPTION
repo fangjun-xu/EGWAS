@@ -1,0 +1,24 @@
+Package: EGWAS
+Title: Ensemble-like Genome Wide Associated Analysis Strategy
+Version: 1.0
+Authors@R: 
+    person(given="Fangjun", 
+           family="Xu", 
+           email="fjxu@webmail.hzau.edu.cn", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0001-2079-3293"))
+Description: a post GWAS strategy aims to control false positive rate inspired by ensemble learning method.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends: 
+    base,
+    stats
+Imports: 
+    bigmemory,
+    gaston,
+    MASS,
+    parallel,
+    rMVP,
+    StepReg
