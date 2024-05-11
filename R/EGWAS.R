@@ -340,7 +340,7 @@ if(length(specific)==0){
 	X3<-as.matrix(geno[, c(specific)],ncol=length(specific))
 	per.x <- as.matrix(geno[, c(per.index)],ncol=length(per.index))
 	CVmlm<-as.matrix(cbind(per.x,CV), nrow = length(y))
-	x<-as.matrix(cbind(X3,rep(1, length(y)),CVmlm), nrow = length(y))
+	x<-as.matrix(cbind(rep(1, length(y)),CVmlm), nrow = length(y))
 	fit.mv<-gaston::lmm.aireml(y, X=x, K=list(G), EMsteps_fail= 10L, verbose= FALSE)
 	V <- G*fit.mv$tau[1]+diag(fit.mv$sigma2,dim(G)[1])
 	Vi <- try(solve(V+diag(1,ncol(V))*(1e-10)),silent=T)
@@ -348,6 +348,7 @@ if(length(specific)==0){
 		warning("Singular matrix V!")
 		Vi <- MASS::ginv(V)
 	}
+	x<-as.matrix(cbind(X3,rep(1, length(y)),CVmlm), nrow = length(y))
 	XVX=t(x)%*%Vi%*%x
 	XVXi <- try(solve(XVX+diag(1,ncol(XVX))*(1e-10)),silent=T)
 	if(inherits(XVXi, "try-error")){
