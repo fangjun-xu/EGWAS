@@ -536,10 +536,7 @@ if(is.null(specific) || length(specific)==0){
 		}
 	}
 	revl <- do.call(rbind, revl)
-	if (verbose) {
-		pbapply::setTimerProgressBar(pb, 1)
-		cat("\n")
-	}
+	
 	ld.index <- LD.remove(index = un.in, geno = geno, value = revl[,3],
 						  LD.threshold = LD.threshold, verbose = verbose)
 	if(verbose) cat(length(ld.index),"specific markers retained after LD removing","\n")
