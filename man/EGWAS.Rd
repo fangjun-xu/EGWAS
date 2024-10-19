@@ -9,11 +9,13 @@ EGWAS(
   geno = NULL,
   map = NULL,
   CV = NULL,
-  GWAS.results = NULL,
-  Bayesian.method = c(),
-  Bin.size = 0,
+  pvalue = NULL,
+  pip = NULL,
+  bin.size = 0,
   permu.num = 1000,
-  p.threshold = c(0.05, 0.05, 0.05),
+  pv.threshold=0.05,
+  pip.threshold=0.05,
+	permu.threshold=0.05,
   Kinship = NULL,
   LD.threshold = 0.7,
   ncpus = 1,
@@ -29,15 +31,19 @@ EGWAS(
 
 \item{CV}{additional fixed effects or covariates}
 
-\item{GWAS.results}{p values of GWAS methods, ncol equal to nmethod}
+\item{pvalue}{p values of GWAS methods, ncol equal to nmethod}
 
-\item{Bayesian.method}{column for Bayesian method in GWAS.results}
+\item{pip}{posterior inclusive probability (PIP) derived from Bayesian method}
 
-\item{Bin.size}{size of bin in union-intersection step}
+\item{bin.size}{size of bin in union-intersection step}
 
 \item{permu.num}{number of permutation test}
 
-\item{p.threshold}{significant level, Bonferroni/PPI/Permutation}
+\item{pv.threshold}{significant level, Bonferroni}
+
+\item{pip.threshold}{significant level, PIP}
+
+\item{permu.threshold}{significant level, Permutation}
 
 \item{Kinship}{genetic relationship matrix}
 
@@ -55,9 +61,9 @@ a post GWAS strategy aims to control false positive rate inspired by ensemble le
 }
 \examples{
 \donttest{
-myEGWAS <- EGWAS(y=phe, geno=geno, map=map,CV=NULL,
-  GWAS.results=GWAS,Bayesian.method=c(1),
-  Bin.size=0, permu.num=1000,p.threshold=C(.05,.05,.05),
-  Kinship=G,LD.threshold=0.7,ncpus=10,verbose=TRUE)
+eg <- EGWAS(y=phe, geno=geno, map=map,CV=NULL, pvalue=GWAS, pip=NULL,
+				  bin.size=0, permu.num=1000,pv.threshold=0.05,pip.threshold=0.05,
+				  permu.threshold=0.01,Kinship=NULL,LD.threshold=0.7,
+				  ncpus=10,verbose=TRUE)
 }
 }
