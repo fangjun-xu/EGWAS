@@ -242,6 +242,9 @@ if(verbose){
 	cat(c("Number of permutation:",permu.num,"\n"))
 	cat(c("Number of covariates:",ifelse(is.null(CV),0,ncol(CV)),"\n"))
 	cat(c("Number of threads:",ncpus,"\n"))
+	cat(c("Bin size for intersection:",bin.size,"\n"))
+	cat("Thresholds(LD/PV/PIP/Per):",c(LD.threshold,pv.threshold,pip.threshold,
+				                       permu.threshold),"\n")
 }
 
 #####################
