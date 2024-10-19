@@ -377,9 +377,9 @@ x<-cbind(X1,Cov)
 fit.mv <- gaston::lmm.aireml(y, X=x, K=G, 
 							 EMsteps_fail= 10L,eps = 1e-02,
 							 get.P =TRUE,verbose= FALSE)
-Beta <- fit$BLUP_beta
-if (!is.null(fit$varbeta)) {
-	varbeta <- as.vector(diag(fit$varbeta))
+Beta <- fit.mv$BLUP_beta
+if (!is.null(fit.mv$varbeta)) {
+	varbeta <- as.vector(diag(fit.mv$varbeta))
 }else {
 	vg <- fit.mv$tau[1]
 	ve <- fit.mv$sigma2
@@ -550,9 +550,9 @@ if(is.null(specific) || length(specific)==0){
 	fit.mv <- gaston::lmm.aireml(y, X=x, K=G, 
 								 EMsteps_fail= 10L,eps = 1e-02,
 								 get.P =TRUE,verbose= FALSE)
-	Beta <- fit$BLUP_beta
-	if (!is.null(fit$varbeta)) {
-		varbeta <- as.vector(diag(fit$varbeta))
+	Beta <- fit.mv$BLUP_beta
+	if (!is.null(fit.mv$varbeta)) {
+		varbeta <- as.vector(diag(fit.mv$varbeta))
 	}else {
 		vg <- fit.mv$tau[1]
 		ve <- fit.mv$sigma2
