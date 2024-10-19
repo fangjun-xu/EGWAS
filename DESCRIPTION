@@ -20,5 +20,7 @@ Imports:
     gaston,
     MASS,
     parallel,
-    rMVP,
-    StepReg
+    nnet,
+    pbapply,
+    snowfall,
+    stats
