@@ -477,7 +477,7 @@ if (ncpus == 1) {
     }else {
         suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
         suppressMessages(snowfall::sfExport("X2", "y", "Cov", "wh.index", 
-		                                    ifelse(verbose,c("pbseq", "pb", "verbose"),c("verbose"))))
+		                        ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
         suppressMessages(snowfall::sfLibrary(pbapply))
         suppressMessages(snowfall::sfLibrary(stats))
 		suppressMessages(snowfall::sfLibrary(MASS))
