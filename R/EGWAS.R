@@ -324,11 +324,11 @@ mlm <- function(i){
         warning("Singular matrix XVX!")
         XVXi <- MASS::ginv(XVX)
     }
-    Beta <- tcrossprod(tcrossprod(XVXi, xi), Vi)%*%matrix(y,ncol=1)[1,1]
+    Beta <- tcrossprod(tcrossprod(XVXi, xi), Vi)%*%matrix(y,ncol=1)
     #se=XVXi
     #tvalue <- beta/se
     se <- sqrt(XVXi[1,1])
-    tvalue <- Beta / se
+    tvalue <- Beta[1,1] / se
     pvalue <- 2 * stats::pt(abs(tvalue), df=length(y)-ncol(xi),lower.tail = FALSE)
     
     result <- c(Beta,se,pvalue)
