@@ -397,9 +397,11 @@ if (!is.null(fit.mv$varbeta)) {
     }
     rm(X)
     varbeta <- tcrossprod(tcrossprod(XXiX, V_VPV), XXiX)
+    varbeta <- as.vector(diag(varbeta))
     rm(XXiX, V_VPV)
 }
-se <- sqrt(diag(varbeta))
+se <- sqrt(varbeta)
+if (length(Beta) != length(se)) stop("Unknown error in mixed model!")
 SNPX_ad <- Beta / se
 P_X<-2*stats::pt(abs(SNPX_ad),length(y)-ncol(x),lower.tail=FALSE)
 #P_X<-2*pnorm(abs(SNPX_ad),lower=FALSE)
