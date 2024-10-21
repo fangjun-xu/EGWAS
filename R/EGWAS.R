@@ -41,7 +41,7 @@ EGWAS.version <-  function(verbose = TRUE) {
               "< Welcome to E-GWAS >",
               paste(rep("=", 18), collapse = ""),
               "+", sep = ""), "\n")
-    cat("|            A Ensemble-like Strategy for GWAS            |\n")
+  cat("|            A Ensemble-like Strategy for GWAS            |\n")
 	cat("|         _ _ _  _ _ _ _    __    __  _ _      _ _        |\n")
 	cat("|        / _ _/ / _ _ _/   / /   / / /   |    / _ /       |\n")
 	cat("|       / /_   / /  __    / /   / / / /| |   / /          |\n")
