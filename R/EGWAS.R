@@ -411,7 +411,7 @@ P_true<-P_X[1:ncol(X1)]
     cat("\n")
 }
 
-###permutation
+###permutation TEST
 if (permu.num > ncpus && ncpus > 1) {
     pbseq <- seq(permu.num, 1, -ceiling(permu.num / ncpus))[1:ncpus]
 }else {
