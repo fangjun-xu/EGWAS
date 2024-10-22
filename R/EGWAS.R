@@ -297,45 +297,63 @@ if(length(un.in)==0) {
 	specific <- whole[-which(whole %in% un.in)]
 }
 ###mlm
+if(is.null(Kinship)){
+  if (verbose) {
+    cat("Calculating GRM...\n")
+    pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
+    on.exit(close(pb))
+  }
+	G <- Kinship.Van(geno = geno)
+  if (verbose) {
+    pbapply::setTimerProgressBar(pb, 1)
+    cat("\n")
+  }
+}else{
+	G <- Kinship
+}
+Cov <- CovMatrix(CV , n)
+
 if (verbose) {
     cat("Re-calculating p values...\n")
     pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
     on.exit(close(pb))
 }
-if(is.null(Kinship)){
-	G <- Kinship.Van(geno = geno)
-}else{
-	G <- Kinship
-}
-Cov <- CovMatrix(CV , n)
-fit.mlm <- gaston::lmm.aireml(y,X=Cov,K=G,EMsteps_fail = 10L,eps = 1e-02,verbose = FALSE)
-vg <-fit.mlm$tau[1]
-ve <- fit.mlm$sigma2
-V <- G*vg + diag(ve, dim(G)[1])
-Vi <- try(solve(V + diag(1,ncol(V))*(1e-10)),silent=T)
-if(inherits(Vi, "try-error")){
-    warning("Singular matrix V!")
-    Vi <- MASS::ginv(V)
-}
 mlm <- function(i){
-	indexi <- un.in[i]
+  indexi <- un.in[i]
 	x <- geno[indexi, ]
-	xi <- cbind(x,Cov)
-    XVX <- crossprod(xi, crossprod(Vi, xi))
-    XVXi <- try(solve(XVX + diag(1, ncol(XVX))*(1e-10)), silent=T)
-    if(inherits(XVXi, "try-error")){
-        warning("Singular matrix XVX!")
-        XVXi <- MASS::ginv(XVX)
+  xi <- cbind(x,Cov)
+  
+  fit.mv <- gaston::lmm.aireml(y, X=xi, K=G, 
+							 EMsteps_fail= 10L,eps = 1e-02,
+							 get.P =TRUE,verbose= FALSE)
+  Beta <- fit.mv$BLUP_beta
+  if (!is.null(fit.mv$varbeta)) {
+	  varbeta <- as.vector(diag(fit.mv$varbeta))
+  }else {
+	  vg <- fit.mv$tau[1]
+	  ve <- fit.mv$sigma2
+	  V <- G*vg + diag(ve, dim(G)[1])
+	  P <- fit.mv$P
+    V_VPV <- V - tcrossprod(crossprod(V, P), V )
+	  X <- xi
+    XXiX <- try(tcrossprod(solve(crossprod(X)), X), silent = TRUE)
+    if (inherits(XXiX, "try-error")) {
+        warning("The CV matrix is singular!\nUsing general inverse insteaded")
+        XXiX <- tcrossprod(MASS::ginv(crossprod(X)), X)
     }
-    Beta <- tcrossprod(tcrossprod(XVXi, xi), Vi)%*%matrix(y,ncol=1)
-    #se=XVXi
-    #tvalue <- beta/se
-    se <- sqrt(XVXi[1,1])
-    tvalue <- Beta[1,1] / se
-    pvalue <- 2 * stats::pt(abs(tvalue), df=length(y)-ncol(xi),lower.tail = FALSE)
-    
-    result <- c(Beta,se,pvalue)
-    return(result)
+    rm(X)
+    varbeta <- tcrossprod(tcrossprod(XXiX, V_VPV), XXiX)
+    varbeta <- as.vector(diag(varbeta))
+    rm(XXiX, V_VPV)
+  }
+  se <- sqrt(varbeta)
+  if (length(Beta) != length(se)) stop("Unknown error in mixed model!")
+  SNPX_ad <- Beta / se
+  P_X<-2*stats::pt(abs(SNPX_ad),length(y)-ncol(xi),lower.tail=FALSE)
+  #P_X<-2*pnorm(abs(SNPX_ad),lower=FALSE)
+  
+  result <- c(Beta[1],se[1],pvalue[1])
+  return(result)
 }
 
 if (length(un.in) == 1 || ncpus == 1) {
@@ -345,8 +363,9 @@ if (length(un.in) == 1 || ncpus == 1) {
         revl <- parallel::mclapply(1:length(un.in), FUN = mlm, mc.cores = ncpus)
     }else {
         suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
-        suppressMessages(snowfall::sfExport("geno", "y", "un.in", "Cov","Vi"))
+        suppressMessages(snowfall::sfExport("geno", "y", "G", "un.in", "Cov"))
         suppressMessages(snowfall::sfLibrary(stats))
+        suppressMessages(snowfall::sfLibrary(gaston))
         suppressMessages(snowfall::sfLibrary(MASS))
         revl <- snowfall::sfLapply(1:length(un.in), fun = mlm)
         suppressMessages(snowfall::sfStop())
@@ -478,11 +497,12 @@ if (ncpus == 1) {
                                  mc.preschedule = TRUE)
     }else {
         suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
-        suppressMessages(snowfall::sfExport("X2", "y", "Cov", "wh.index", 
-		                        ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
+        suppressMessages(snowfall::sfExport("X2", "y", "Cov", "wh.index",
+                                            "pbseq","verbose"))
+        suppressMessages(ifelse(verbose,snowfall::sfExport("pb"),Sys.sleep(0.00001)))
         suppressMessages(snowfall::sfLibrary(pbapply))
         suppressMessages(snowfall::sfLibrary(stats))
-		suppressMessages(snowfall::sfLibrary(MASS))
+		    suppressMessages(snowfall::sfLibrary(MASS))
         p_matrix <- snowfall::sfLapply(1:permu.num, fun = permu.glm)
         suppressMessages(snowfall::sfStop())
     }
@@ -533,7 +553,7 @@ if(is.null(specific) || length(specific)==0){
 			revl <- parallel::mclapply(1:length(un.in), FUN = mlm, mc.cores = ncpus)
 		}else {
 			suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
-			suppressMessages(snowfall::sfExport("geno", "y", "un.in", "Cov","Vi"))
+			suppressMessages(snowfall::sfExport("geno", "y", "un.in", "Cov","G"))
 			suppressMessages(snowfall::sfLibrary(stats))
 			suppressMessages(snowfall::sfLibrary(MASS))
 			revl <- snowfall::sfLapply(1:length(un.in), fun = mlm)
