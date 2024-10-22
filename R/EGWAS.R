@@ -251,9 +251,9 @@ if(verbose){
 ###union-intersect###
 #####################
 if (verbose) {
-    cat(paste(paste(rep("-", 19), collapse = ""),
+    cat(paste(paste(rep("#", 19), collapse = ""),
               "Union-Intersect  Step",
-              paste(rep("-", 19), collapse = ""), sep = ""), "\n")
+              paste(rep("#", 19), collapse = ""), sep = ""), "\n")
 }
 ###pick up signal from gwas results
 bonfer <- pv.threshold / m
@@ -389,9 +389,9 @@ if(verbose) cat(length(ld.index),"markers retained after LD removing","\n")
 ###permutation test###
 ######################
 if (verbose) {
-    cat(paste(paste(rep("-", 19), collapse = ""),
+    cat(paste(paste(rep("#", 19), collapse = ""),
               "Permutation Test Step",
-              paste(rep("-", 19), collapse = ""), sep = ""), "\n")
+              paste(rep("#", 19), collapse = ""), sep = ""), "\n")
 }
 if (verbose) {
     cat("Calculating initial p values...\n")
@@ -544,9 +544,9 @@ if(is.null(specific) || length(specific)==0){
 	result <- list(Base.signal = signal, EGWAS = egwas.index, Specific = NULL)
 }else{
 	if (verbose) {
-		cat(paste(paste(rep("-", 18), collapse = ""),
+		cat(paste(paste(rep("#", 18), collapse = ""),
               "Specific Markers Filter",
-              paste(rep("-", 18), collapse = ""), sep = ""), "\n")
+              paste(rep("#", 18), collapse = ""), sep = ""), "\n")
 		cat(length(specific),"specific markers exist","\n")
 	}
 	
@@ -620,7 +620,7 @@ if(is.null(specific) || length(specific)==0){
 	# spe.true1<-spe.true[which(specific %in% speld.index)]
 	# spe.index<-spe.index1[which(spe.true1<=ppthre)]
 
-	if(verbose) cat(length(spe.index),"specific markers retained after permutation with overlap fixed","\n")
+	if(verbose) cat(length(spe.index),"specific markers retained finally","\n")
 	result <- list(Base.signal = signal, EGWAS = egwas.index, Specific = spe.index)
 	# egwas.index<-c(per.index,spe.index)
 	# seqQTN<-egwas.index
