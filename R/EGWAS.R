@@ -23,10 +23,10 @@
 #'
 #' @examples
 #' \donttest{
-#' myEGWAS <- EGWAS(y=phe, geno=geno, map=map,CV=NULL,
-#'   GWAS.results=GWAS,Bayesian.method=c(1),
-#'   Bin.size=0, permu.num=1000,p.threshold=C(.05,.05,.05),
-#'   Kinship=G,LD.threshold=0.7,ncpus=10,verbose=TRUE)
+#' eg <- EGWAS(y=phe, geno=geno, map=map,CV=NULL, pvalue=GWAS, pip=NULL,
+#'				  bin.size=0, permu.num=1000,pv.threshold=0.05,pip.threshold=0.05,
+#'				  permu.threshold=0.01,Kinship=NULL,LD.threshold=0.7,
+#'				  ncpus=10,verbose=TRUE)
 #' }
 EGWAS <- function(y=NULL, geno=NULL, map=NULL,CV=NULL, pvalue=NULL, pip=NULL,
 				  bin.size=0, permu.num=1000,pv.threshold=0.05,pip.threshold=0.05,
