@@ -101,10 +101,10 @@ LD.remove <- function(index = NULL, geno = NULL, value = NULL,
       clusters <- stats::cutree(fit, h = 1 - LD.threshold)
       names(value) <- rownames(X1)
       top.selected <- sapply(1:max(clusters), function(i) {
-	cluster_elements <- clusters == i
-	top_within <- which.min(value[cluster_elements])
-	if (length(top_within) == 0) top_within <- 1
-	return(which(cluster_elements)[top_within])
+	    cluster_elements <- clusters == i
+	    top_within <- which.min(value[cluster_elements])
+	    if (length(top_within) == 0) top_within <- 1
+	      return(which(cluster_elements)[top_within])
       })
       index<-as.numeric(names(top.selected))
       rm(sigma, sigma.distance, fit, clusters, top.selected)
@@ -131,7 +131,7 @@ LD.remove <- function(index = NULL, geno = NULL, value = NULL,
       indi <- lapply(1:nbreak, function(i) {
         idi <- index[which(cutind == i, arr.ind = TRUE)]
         vi <- value[which(cutind == i, arr.ind = TRUE)]
-	if (verbose) {
+	      if (verbose) {
           pbapply::setTimerProgressBar(pb, i)
         }
         return(ldr(index = idi, value = vi))
