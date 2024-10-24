@@ -271,6 +271,7 @@ if (length(unlist(signal)) == 0) stop("No method has significant markers")
 if (verbose) {
 	cat(sapply(signal, length), "significant markers in the gwas methods", "\n")
 }
+names(signal) <- colnames(GWAS)
 ###union-intersect
 un.in <- c()
 for(i in 1:(length(signal)-1)){
