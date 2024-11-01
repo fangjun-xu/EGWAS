@@ -87,7 +87,13 @@ CovMatrix <- function(CV = NULL, n = NULL) {
 }
 
 LD.remove <- function(index = NULL, geno = NULL, value = NULL,
-                      LD.threshold = 0.7, verbose = TRUE) {
+                      LD.threshold = 0.7, ncpus = 1, verbose = TRUE) {
+  if (length(index) != length(value)) {
+    stop("length of index and value not equal")
+  }
+  if (sum(is.na(index), is.na(value)) != 0) {
+    stop("NAs is not allowed")
+  }
   if (length(index) < 2) {
     return(index)
   }else {
@@ -101,49 +107,74 @@ LD.remove <- function(index = NULL, geno = NULL, value = NULL,
       clusters <- stats::cutree(fit, h = 1 - LD.threshold)
       names(value) <- rownames(X1)
       top.selected <- sapply(1:max(clusters), function(i) {
-	    cluster_elements <- clusters == i
-	    top_within <- which.min(value[cluster_elements])
-	    if (length(top_within) == 0) top_within <- 1
+	      cluster_elements <- clusters == i
+	      top_within <- which.min(value[cluster_elements])
+	      if (length(top_within) == 0) top_within <- 1
 	      return(which(cluster_elements)[top_within])
       })
-      index<-as.numeric(names(top.selected))
+      index <- as.numeric(names(top.selected))
       rm(sigma, sigma.distance, fit, clusters, top.selected)
       return(index)
     }
-    if (length(index) <= 10000) {
+    if (length(index) <= 6000) {
       if (verbose) {
         cat("LD removing...\n")
         pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
         on.exit(close(pb))
       }
-      index <- ldr(index = index, value = value)
+      index_out <- ldr(index = index, value = value)
       if (verbose) {
         pbapply::setTimerProgressBar(pb, 1)
       }
+      return(index_out)
     }else {
-      nbreak <- ceiling(length(index) / 10000)
-      cutind <- cut(1:length(index), breaks = nbreak, labels = FALSE)
+      mcs <- ifelse(Sys.info()[["sysname"]] == "Linux", ncpus, 1)
+      nbreak <- ceiling(length(index) / 3000)
+      cutind <- cut(seq_len(length(index)), breaks = nbreak, labels = FALSE)
+      com <- utils::combn(1 : nbreak, 2)
+      if (ncol(com) > mcs && mcs > 1) {
+        pbseq <- seq(ncol(com), 1, -ceiling(ncol(com) / ncpus))[1:ncpus]
+      }else {
+        pbseq <- seq_len(ncol(com))
+      }
       if (verbose) {
         cat("LD removing...\n")
-        pb <- pbapply::timerProgressBar(max = nbreak + 1, width = 30, char = "-", style = 3)
+        maxpb <- length(pbseq) + 1
+        pb <- pbapply::timerProgressBar(max = maxpb, width = 30,
+                                        char = "-", style = 3)
         on.exit(close(pb))
       }
-      indi <- lapply(1:nbreak, function(i) {
-        idi <- index[which(cutind == i, arr.ind = TRUE)]
-        vi <- value[which(cutind == i, arr.ind = TRUE)]
-	      if (verbose) {
-          pbapply::setTimerProgressBar(pb, i)
+      indmc <- parallel::mclapply(seq_len(ncol(com)), function(i) {
+        a <- com[1, i]
+        b <- com[2, i]
+        ida <- index[which(cutind == a, arr.ind = TRUE)]
+        va <- value[which(cutind == a, arr.ind = TRUE)]
+        idb <- index[which(cutind == b, arr.ind = TRUE)]
+        vb <- value[which(cutind == b, arr.ind = TRUE)]
+        idi <- c(ida, idb)
+        vi <- c(va, vb)
+        outi <- ldr(index = idi, value = vi)
+        sign <- rep(NA, length(idi))
+        sign[which(idi %in% outi)] <- 1
+        if (verbose && i %in% pbseq) {
+          pbapply::setTimerProgressBar(pb, which(sort(pbseq) %in% i))
         }
-        return(ldr(index = idi, value = vi))
-      })
-      indi <- unlist(indi)
-      vali <- value[which(index %in% indi)]
-      index <- ldr(index = indi, value = vali)
-      if (verbose) {
-        pbapply::setTimerProgressBar(pb, nbreak + 1)
+        return(rbind(idi, sign))
+      }, mc.cores = mcs)
+      indmc <- do.call(cbind, indmc)
+      if (sum(is.na(indmc[2, ])) == 0) {
+        index_out <- unique(indmc[1, ])
+      }else {
+        idNA <- indmc[1, which(is.na(indmc[2, ]))]
+        id1 <- indmc[1, which(!is.na(indmc[2, ]))]
+        index_out <- setdiff(id1, idNA)
+        index_out <- unique(index_out)
       }
-    }	
-    return(index)
+      if (verbose) {
+        pbapply::setTimerProgressBar(pb, maxpb)
+      }
+      return(index_out)
+    }
   }
 }
 
@@ -382,7 +413,7 @@ if (verbose) {
     pbapply::setTimerProgressBar(pb, 1)
     cat("\n")
 }
-ld.index <- LD.remove(index = un.in, geno = geno, value = revl[,3],
+ld.index <- LD.remove(index = un.in, geno = geno, value = revl[,3], ncpus = ncpus,
                       LD.threshold = LD.threshold, verbose = verbose)
 if(verbose) cat(length(ld.index),"markers retained after LD removing","\n")
 
@@ -569,7 +600,7 @@ if(is.null(specific) || length(specific)==0){
 	revl <- do.call(rbind, revl)
 	
 	ld.index <- LD.remove(index = un.in, geno = geno, value = revl[,3],
-						  LD.threshold = LD.threshold, verbose = verbose)
+						  ncpus = ncpus, LD.threshold = LD.threshold, verbose = verbose)
 	if(verbose) cat(length(ld.index),"specific markers retained after LD removing","\n")
 
 	X1<-t(as.matrix(geno[c(ld.index), ], ncol=length(ld.index)))
